@@ -6,9 +6,21 @@ require('dotenv').config()
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// const mongoose Schema
+// const userSchema = mongoose Schema
+  // {
+    // username:
+    // count:
+    // _id:
+    // log: [
+      // {
+        // description:
+        // duration:
+        // date:
+      // }
+    // ] 
+  // }
 
-// let x = mongoose.model
+// let User = mongoose.model
 
 app.use(cors())
 app.use(express.static('public'))
