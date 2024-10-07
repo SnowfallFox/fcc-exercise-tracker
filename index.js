@@ -6,21 +6,18 @@ require('dotenv').config()
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// const userSchema = mongoose Schema
-  // {
-    // username:
-    // count:
-    // _id:
-    // log: [
-      // {
-        // description:
-        // duration:
-        // date:
-      // }
-    // ] 
-  // }
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  count: Number,
+  _id: { type: String, required: true },
+  log: [{
+    description: { type:String, required:true },
+    duration: { type:Number, required:true },
+    date: { type:Date, default:Date.now }
+  }]
+})
 
-// let User = mongoose.model
+let User = mongoose.model("User", userSchema)
 
 app.use(cors())
 app.use(express.static('public'))
