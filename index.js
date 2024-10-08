@@ -29,9 +29,9 @@ const findUser = async (name,res) => {
       } else {
         res.json({'username':user[0].username,'_id':user[0].id})
       }
-    } catch(error) {
-      console.log(error);
-    }
+  } catch(error) {
+    console.log(error);
+  }
 };
 
 const createUser = async (name,res) => {
