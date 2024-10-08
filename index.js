@@ -14,10 +14,37 @@ const userSchema = new mongoose.Schema({
     description: { type:String, required:true },
     duration: { type:Number, required:true },
     date: { type:Date, default:Date.now }
+      // d = new Date()
+      // console.log(d.toDateString())
   }]
 })
-
 let User = mongoose.model("User", userSchema)
+
+const findUser = async (name,res) => {
+  try {
+    const user = await User.find({username:name});
+      if (user.length === 0) {
+        console.log('no users')
+        createUser(name,res)
+      } else {
+        res.json({'username':user[0].username,'_id':user[0].id})
+      }
+    } catch(error) {
+      console.log(error);
+    }
+};
+
+const createUser = async (name,res) => {
+  const newUser = await new User({username:name});
+  await newUser.save((err,data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(`-- added {username:${name}} to db --`);
+      findUser(name,res);
+    }
+  });
+}
 
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cors())
@@ -30,29 +57,7 @@ app.get('/', (req, res) => {
 // entering a name into "create user" form should return json of test example 'User'
 app.post('/api/users', (req,res) => {
   let name = req.body.username;
-  User.find({username:name}, (err,data) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log(data)
-      if (data.length > 0) {
-        console.log('data found')
-      } else {
-        let newUser = new User({username:name})
-        newUser.save((err,data) => {
-          if (err) return console.log(err);
-        })
-        console.log(`-- added {username:${name}} to db --`)
-      }
-    }
-    User.find({username:name}, (err,data) => {
-      if (err) {
-        console.log(err)
-      } else if (data.length > 0) {
-        res.json({'username':data[0].username, '_id':data[0]._id})
-      }
-    });
-  });
+  findUser(name,res)
 });
 // submitting 'exercises' form should return json of test example 'Exercise'
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
