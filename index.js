@@ -118,12 +118,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
       res.json({'error':'invalid date'})
     }
     findID(req.params._id,req.body.description,req.body.duration,date,res)
-  }
-  // else - search for user using provided ID
-  // if found - update log with new exercise and update count, and respond with json of submitted exercise
-  // if not found - respond with json {'error':'user does not exist with that ID'}
-  // have to make sure date is in correct format (y-m-d or m-d-y)
-  // 
+  } 
 })
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
 app.get('/api/users', (req,res,next) => {
@@ -135,7 +130,17 @@ app.get('/api/users', (req,res,next) => {
     }
   })
 });
-// GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log' 
+// GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
+app.get('/api/users/:_id/logs', (req,res,next) => {
+  const userID = req.params._id
+  const user = User.findById(userID, (err,data) => {
+    if (err) {
+      console.log(err)
+    } else {
+      res.json({_id:data._id, username:data.username, count: data.count, log: data.log})
+    }
+  })
+}) 
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 
 
