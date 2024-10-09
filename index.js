@@ -114,6 +114,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
     if (req.body.date !== '') {
       date = new Date(req.body.date)
     }
+    // THIS DOESN'T WORK -- NEED A BETTER WAY TO VAlIDATE DATES AND MAKE SURE THE CORRECT STRING OUTPUT OCCURS AT THE END OF THE IMPLEMENTATION
     if (date === 'Invalid Date') {
       res.json({'error':'invalid date'})
     } else {
@@ -138,6 +139,9 @@ app.get('/api/users/:_id/logs', (req,res,next) => {
     if (err) {
       console.log(err)
     } else {
+      // DOING THIS THIS WAY KEEPS THE _ID IN THE LOGS WHICH IS NOT DESIRABLE FOR TEST 12
+      // THEORY ON WHY TEST 10 FAILS DESPITE BEING SEEMINGLY CORRENT -> CHECKS FOR SPECIFIC VALUES, SO ANY FAILURES TO ADD EXERCISES ALTERS THE VALUE, FAILING THE TEST
+      // SAME FOR TEST 11
       res.json({_id:data._id, username:data.username, count: data.count, log: data.log})
     }
   })
