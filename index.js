@@ -20,6 +20,12 @@ const userSchema = new mongoose.Schema({
 })
 let User = mongoose.model("User", userSchema)
 
+// const removeTests = async () => {
+//   const name = "fcc"
+//   console.log('removing test users')
+//   await User.deleteMany({username: {$regex: name, $options: 'i'}});
+// }
+
 const findUser = async (name,res) => {
   try {
     const user = await User.find({username:name});
@@ -51,6 +57,7 @@ app.use(cors())
 app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
+  // removeTests()
 });
 
 // TODO:
@@ -69,9 +76,7 @@ app.get('/api/users', (req,res,next) => {
       res.json(data)
     }
   })
-  
-  // res.json(users)
-})
+});
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log' 
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 
