@@ -61,6 +61,17 @@ app.post('/api/users', (req,res) => {
 });
 // submitting 'exercises' form should return json of test example 'Exercise'
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
+app.get('/api/users', (req,res,next) => {
+  const users = User.find({}, {username:1}, (err,data) => {
+    if (err) {
+      console.log(`error: ${error}`)
+    } else {
+      res.json(data)
+    }
+  })
+  
+  // res.json(users)
+})
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log' 
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 
