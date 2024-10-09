@@ -105,12 +105,19 @@ app.post('/api/users', (req,res) => {
 });
 // submitting 'exercises' form should return json of test example 'Exercise'
 app.post('/api/users/:_id/exercises', (req,res) => {
+  let date = ''
   if (req.body.description === '' || req.body.duration === '' || req.params._id === '') {
     res.json({'ERROR':'BLANK REQUIRED FIELDS (id, description, duration'})
   } else if (isNaN(req.body.duration)) { 
     res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
   } else {
-    findID(req.params._id,req.body.description,req.body.duration,req.body.date, res)
+    if (req.body.date !== '') {
+      date = new Date(req.body.date)
+    }
+    if (date === 'Invalid Date') {
+      res.json({'error':'invalid date'})
+    }
+    findID(req.params._id,req.body.description,req.body.duration,date,res)
   }
   // else - search for user using provided ID
   // if found - update log with new exercise and update count, and respond with json of submitted exercise
