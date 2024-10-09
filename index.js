@@ -116,8 +116,9 @@ app.post('/api/users/:_id/exercises', (req,res) => {
     }
     if (date === 'Invalid Date') {
       res.json({'error':'invalid date'})
+    } else {
+      findID(req.params._id,req.body.description,req.body.duration,date,res)
     }
-    findID(req.params._id,req.body.description,req.body.duration,date,res)
   } 
 })
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
