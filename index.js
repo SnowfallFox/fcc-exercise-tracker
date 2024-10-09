@@ -9,14 +9,17 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 const userSchema = new mongoose.Schema({
   username: { type:String, required:true },
-  count: Number,
   log: [{
     description: { type:String, required:true },
     duration: { type:Number, required:true },
     date: { type:Date, default:Date.now }
       // d = new Date()
       // console.log(d.toDateString())
-  }]
+  }],
+  count: { type:Number, default:function() {
+    const collection = this.log;
+    return (collection) ? collection.length : 0;
+  }}
 })
 let User = mongoose.model("User", userSchema)
 
@@ -26,11 +29,45 @@ let User = mongoose.model("User", userSchema)
 //   await User.deleteMany({username: {$regex: name, $options: 'i'}});
 // }
 
+const addExercise = (user, desc, dur, date, res) => {
+    if (date === '') {
+      user.log.push({description:desc, duration:dur})
+    } else {
+      user.log.push({description:desc, duration:dur, date:date})
+    }
+    user.count +=1
+    user.save((err,newData) => {
+      if (err) {
+        console.log(err)
+      }
+    })
+    if (date === '') {
+      let d = new Date()
+      res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
+    } else {
+      res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
+    }
+}
+
+const findID = async (ID, desc, dur, date, res) => {
+  try {
+    const user = await User.findById(ID);
+    if (user !== null) {
+      addExercise(user, desc, dur, date, res)
+    } else {
+      res.json({'ERROR':'no user exists for that ID'})
+    }
+    // console.log(user)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const findUser = async (name,res) => {
   try {
     const user = await User.find({username:name});
       if (user.length === 0) {
-        console.log('no users')
+        console.log('no users with that username')
         createUser(name,res)
       } else {
         res.json({'username':user[0].username,'_id':user[0].id})
@@ -41,7 +78,7 @@ const findUser = async (name,res) => {
 };
 
 const createUser = async (name,res) => {
-  const newUser = await new User({username:name});
+  const newUser = new User({ username: name });
   await newUser.save((err,data) => {
     if (err) {
       console.log(err);
@@ -67,11 +104,25 @@ app.post('/api/users', (req,res) => {
   findUser(name,res)
 });
 // submitting 'exercises' form should return json of test example 'Exercise'
+app.post('/api/users/:_id/exercises', (req,res) => {
+  if (req.body.description === '' || req.body.duration === '' || req.params._id === '') {
+    res.json({'ERROR':'BLANK REQUIRED FIELDS (id, description, duration'})
+  } else if (isNaN(req.body.duration)) { 
+    res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
+  } else {
+    findID(req.params._id,req.body.description,req.body.duration,req.body.date, res)
+  }
+  // else - search for user using provided ID
+  // if found - update log with new exercise and update count, and respond with json of submitted exercise
+  // if not found - respond with json {'error':'user does not exist with that ID'}
+  // have to make sure date is in correct format (y-m-d or m-d-y)
+  // 
+})
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
 app.get('/api/users', (req,res,next) => {
   const users = User.find({}, {username:1}, (err,data) => {
     if (err) {
-      console.log(`error: ${error}`)
+      console.log(`error: ${err}`)
     } else {
       res.json(data)
     }
