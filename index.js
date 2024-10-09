@@ -110,7 +110,6 @@ app.post('/api/users/:_id/exercises', (req,res) => {
   } else if (isNaN(req.body.duration)) { 
     res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
   } else {
-    console.log(req.body.date)
     findID(req.params._id,req.body.description,req.body.duration,req.body.date, res)
   }
   // else - search for user using provided ID
