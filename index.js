@@ -21,13 +21,11 @@ const userSchema = new mongoose.Schema({
       let date = new Date()
       return date.toDateString();
     }}
-      // d = new Date()
-      // console.log(d.toDateString())
   }],
   count: { type:Number, default:function() {
     const collection = this.log;
     return (collection) ? collection.length : 0;
-  }};
+  }}
 });
 let User = mongoose.model("User", userSchema);
 
@@ -107,7 +105,6 @@ app.get('/', (req, res) => {
   // removeTests()
 });
 
-// TODO:
 // entering a name into "create user" form should return json of test example 'User'
 app.post('/api/users', (req,res) => {
   let name = req.body.username;
@@ -146,23 +143,39 @@ app.get('/api/users', (req,res,next) => {
 });
 
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
+// GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 app.get('/api/users/:_id/logs', (req,res,next) => {
+  let from = req.query.from;
+  let to = req.query.to;
+  let limit = req.query.limit;
+
+  // if (!from) {
+  //   console.log(from,to,limit)
+  // } else {
+  //   console.log(from)
+  // }
+  
+  // if all 3 entered, sort search (from,to) and then limit to 1
+    // if no limit -> no limit (duh)
+  // if only limit entered -> limit by limit var and then search
+  // if only from entered -> return all results from that date
+  // if only to entered -> all results up to AND including that date
+
   const userID = req.params._id
   const user = User.findById(userID, {log: { _id: 0} }, (err,data) => {
     if (err) {
       console.log(err)
     } else {
-      // THEORY ON WHY TEST 10 FAILS DESPITE BEING SEEMINGLY CORRENT -> CHECKS FOR SPECIFIC VALUES, SO ANY FAILURES TO LOG SEARCH ALTERS THE VALUE, FAILING THE TEST
-      // SAME FOR TESTS 11-15
+      // MISUNDERSTOOD COUNT -> NOT A TOTAL COUNT OF LOGS IN A USER'S PROFILE, BUT A COUNT OF HOW MANY WERE RETURNED BY THE QUERY!!
+      // current method works fine for keeping a count of all logs, so don't remove it
+      // but need to do a recount after querying and return THAT value regardless of total
       res.json({_id:data._id, username:data.username, count: data.count, log: data.log})
     }
   })
 });
 
-// GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
-
 // test URL:
-// https://3000-freecodecam-boilerplate-drm1d178zm1.ws-eu116.gitpod.io/api/users/67069b577a53ae2757121a7c/logs
+// https://3000-freecodecam-boilerplate-drm1d178zm1.ws-eu116.gitpod.io/api/users/67069b577a53ae2757121a7c/logs?from=&to=&limit=
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
