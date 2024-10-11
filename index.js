@@ -27,9 +27,9 @@ const userSchema = new mongoose.Schema({
   count: { type:Number, default:function() {
     const collection = this.log;
     return (collection) ? collection.length : 0;
-  }}
-})
-let User = mongoose.model("User", userSchema)
+  }};
+});
+let User = mongoose.model("User", userSchema);
 
 // const removeTests = async () => {
 //   const name = "fcc"
@@ -57,7 +57,7 @@ const addExercise = (user, desc, dur, date, res) => {
       // console.log(`date = ${date.toDateString()}`)
       res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
     }
-}
+};
 
 const findID = async (ID, desc, dur, date, res) => {
   try {
@@ -71,7 +71,7 @@ const findID = async (ID, desc, dur, date, res) => {
   } catch (error) {
     console.log(error)
   }
-}
+};
 
 const findUser = async (name,res) => {
   try {
@@ -97,7 +97,7 @@ const createUser = async (name,res) => {
       findUser(name,res);
     }
   });
-}
+};
 
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cors())
@@ -132,7 +132,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
       }
   }
   findID(req.params._id,req.body.description,req.body.duration,date,res)
-})
+});
 
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
 app.get('/api/users', (req,res,next) => {
@@ -144,6 +144,7 @@ app.get('/api/users', (req,res,next) => {
     }
   })
 });
+
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
 app.get('/api/users/:_id/logs', (req,res,next) => {
   const userID = req.params._id
@@ -151,12 +152,13 @@ app.get('/api/users/:_id/logs', (req,res,next) => {
     if (err) {
       console.log(err)
     } else {
-      // THEORY ON WHY TEST 10 FAILS DESPITE BEING SEEMINGLY CORRENT -> CHECKS FOR SPECIFIC VALUES, SO ANY FAILURES TO ADD EXERCISES ALTERS THE VALUE, FAILING THE TEST
-      // SAME FOR TEST 11
+      // THEORY ON WHY TEST 10 FAILS DESPITE BEING SEEMINGLY CORRENT -> CHECKS FOR SPECIFIC VALUES, SO ANY FAILURES TO LOG SEARCH ALTERS THE VALUE, FAILING THE TEST
+      // SAME FOR TESTS 11-15
       res.json({_id:data._id, username:data.username, count: data.count, log: data.log})
     }
   })
-}) 
+});
+
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 
 // test URL:
