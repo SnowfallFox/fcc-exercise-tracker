@@ -7,6 +7,11 @@ require('dotenv').config()
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
+// credit to Ash Clarke for date validation method -> https://stackoverflow.com/a/12372720
+Date.prototype.isValid = function () {
+  return this.getTime() === this.getTime();
+};
+
 const userSchema = new mongoose.Schema({
   username: { type:String, required:true },
   log: [{
@@ -43,9 +48,11 @@ const addExercise = (user, desc, dur, date, res) => {
     })
     if (date === '') {
       let d = new Date()
-      res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
+      console.log(`d = ${d.toDateString()}`)
+      // res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
     } else {
-      res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
+      console.log(`date = ${date.toDateString()}`)
+      // res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
     }
 }
 
@@ -103,25 +110,27 @@ app.post('/api/users', (req,res) => {
   let name = req.body.username;
   findUser(name,res)
 });
+
 // submitting 'exercises' form should return json of test example 'Exercise'
 app.post('/api/users/:_id/exercises', (req,res) => {
   let date = ''
   if (req.body.description === '' || req.body.duration === '' || req.params._id === '') {
     res.json({'ERROR':'BLANK REQUIRED FIELDS (id, description, duration'})
+    return;
   } else if (isNaN(req.body.duration)) { 
     res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
-  } else {
-    if (req.body.date !== '') {
+    return;
+  } else if (req.body.date !== '') {
       date = new Date(req.body.date)
-    }
-    // THIS DOESN'T WORK -- NEED A BETTER WAY TO VAlIDATE DATES AND MAKE SURE THE CORRECT STRING OUTPUT OCCURS AT THE END OF THE IMPLEMENTATION
-    if (date === 'Invalid Date') {
-      res.json({'error':'invalid date'})
-    } else {
-      findID(req.params._id,req.body.description,req.body.duration,date,res)
-    }
-  } 
+      console.log(date)
+      if (!date.isValid()) {
+        res.json({'error':'invalid date'})
+        return;
+      }
+  }
+  findID(req.params._id,req.body.description,req.body.duration,date,res)
 })
+
 // submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
 app.get('/api/users', (req,res,next) => {
   const users = User.find({}, {username:1}, (err,data) => {
@@ -135,11 +144,10 @@ app.get('/api/users', (req,res,next) => {
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
 app.get('/api/users/:_id/logs', (req,res,next) => {
   const userID = req.params._id
-  const user = User.findById(userID, (err,data) => {
+  const user = User.findById(userID, {log: { _id: 0} }, (err,data) => {
     if (err) {
       console.log(err)
     } else {
-      // DOING THIS THIS WAY KEEPS THE _ID IN THE LOGS WHICH IS NOT DESIRABLE FOR TEST 12
       // THEORY ON WHY TEST 10 FAILS DESPITE BEING SEEMINGLY CORRENT -> CHECKS FOR SPECIFIC VALUES, SO ANY FAILURES TO ADD EXERCISES ALTERS THE VALUE, FAILING THE TEST
       // SAME FOR TEST 11
       res.json({_id:data._id, username:data.username, count: data.count, log: data.log})
@@ -148,7 +156,8 @@ app.get('/api/users/:_id/logs', (req,res,next) => {
 }) 
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 
-
+// test URL:
+// https://3000-freecodecam-boilerplate-drm1d178zm1.ws-eu116.gitpod.io/api/users/67069b577a53ae2757121a7c/logs
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
