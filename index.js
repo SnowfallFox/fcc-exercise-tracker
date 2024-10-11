@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema({
   log: [{
     description: { type:String, required:true },
     duration: { type:Number, required:true },
-    date: { type:Date, default:Date.now }
+    date: { type:String, default:function() {
+      let date = new Date()
+      return date.toDateString();
+    }}
       // d = new Date()
       // console.log(d.toDateString())
   }],
@@ -38,7 +41,7 @@ const addExercise = (user, desc, dur, date, res) => {
     if (date === '') {
       user.log.push({description:desc, duration:dur})
     } else {
-      user.log.push({description:desc, duration:dur, date:date})
+      user.log.push({description:desc, duration:dur, date:date.toDateString()})
     }
     user.count +=1
     user.save((err,newData) => {
@@ -48,11 +51,11 @@ const addExercise = (user, desc, dur, date, res) => {
     })
     if (date === '') {
       let d = new Date()
-      console.log(`d = ${d.toDateString()}`)
-      // res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
+      // console.log(`d = ${d.toDateString()}`)
+      res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
     } else {
-      console.log(`date = ${date.toDateString()}`)
-      // res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
+      // console.log(`date = ${date.toDateString()}`)
+      res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
     }
 }
 
