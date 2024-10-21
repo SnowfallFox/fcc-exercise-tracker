@@ -50,10 +50,10 @@ const addExercise = (user, desc, dur, date, res) => {
     if (date === '') {
       let d = new Date()
       // console.log(`d = ${d.toDateString()}`)
-      res.json({username: user.username, description: desc, duration: Number(dur), date: d.toDateString(), _id:user._id})
+      res.json({_id:user._id, username: user.username, date: d.toDateString(), duration: Number(dur), description: desc})
     } else {
       // console.log(`date = ${date.toDateString()}`)
-      res.json({username: user.username, description: desc, duration: Number(dur), date:date.toDateString(), _id:user._id})
+      res.json({_id:user._id, username: user.username, date:date.toDateString(), duration: Number(dur), description: desc})
     }
 };
 
@@ -102,6 +102,7 @@ app.use(cors())
 app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
+  // console.log(new Date("Sat Apr 20 2024"))
   // removeTests()
 });
 
@@ -122,7 +123,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
     return;
   } else if (req.body.date !== '') {
       date = new Date(req.body.date)
-      console.log(date)
+      // console.log(date)
       if (!date.isValid()) {
         res.json({'error':'invalid date'})
         return;
@@ -144,31 +145,41 @@ app.get('/api/users', (req,res,next) => {
 
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
-app.get('/api/users/:_id/logs', (req,res,next) => {
+app.get('/api/users/:_id/logs', async (req,res,next) => {
   let userID = req.params._id
-  // let from = new Date(req.query.from);
-  // let to = new Date(req.query.to);
-  // let limit = Number(req.query.limit);
-  // from = from.toDateString()
-  // console.log(from)
+  let from = new Date(req.query.from);
+  let to = new Date(req.query.to);
+  let limit = Number(req.query.limit);
+  
+  // if no dates entered, defaults to earliest and latest possible dates, encompassing all results
+  if (!from.isValid()) {
+    from = new Date('1990-01-01')
+  }
+  if (!to.isValid()) {
+    to = new Date()
+  }
 
-  const d = User.findById(userID, { log: {_id:0}, __v:0}).exec((err,data) => {
-    res.json(data)
+  const d = await User.findById(userID).exec((err,data) => {
+    if (data) {
+      // array of relevant entries (matching date queries)
+      let logs = []
+      for (let i = 0; i < data.log.length; i++) {
+        let d1 = new Date(data.log[i].date)
+        if (d1 >= from && d1 <= to) {
+          logs.push({description:data.log[i].description, duration:data.log[i].duration, date:data.log[i].date})
+        } 
+      }
+      if (limit > 0) {
+        logs = logs.slice(0,limit);
+      }
+      res.json({_id:userID, username:data.username, count:logs.length,log:logs})
+      
+    }
   })
 });
 
-// BlogPost.find({
-//   createdAt: { \$gte: start, \$lte: end }
-// })
-//   .then(posts => {
-//     console.log('Posts between the specified dates:', posts);
-//   })
-//   .catch(err => {
-//     console.error('Error fetching posts:', err);
-//   });
-
 // test URL:
-// https://3000-freecodecam-boilerplate-drm1d178zm1.ws-eu116.gitpod.io/api/users/67069b577a53ae2757121a7c/logs?from=&to=&limit=
+// https://3000-freecodecam-boilerplate-drm1d178zm1.ws-eu116.gitpod.io/api/users/671663ed72fecc1f6889f03e/logs?from=&to=&limit=
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
