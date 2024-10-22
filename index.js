@@ -141,7 +141,8 @@ app.post('/api/users/:_id/exercises', (req,res) => {
       date = new Date(req.body.date)
       // console.log(date)
       if (!date.isValid()) {
-        res.json({'error':'invalid date'})
+        console.log('error bitch')
+        // res.json({'error':'invalid date'})
         return;
       }
   }
