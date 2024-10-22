@@ -75,7 +75,7 @@ const findUser = async (name,res) => {
   try {
     const user = await User.find({username:name});
       if (user.length === 0) {
-        console.log('no users with that username')
+        // console.log('no users with that username')
         createUser(name,res)
       } else {
         res.json({'username':user[0].username,'_id':user[0].id})
@@ -91,7 +91,7 @@ const createUser = async (name,res) => {
     if (err) {
       console.log(err);
     } else {
-      console.log(`-- added {username:${name}} to db --`);
+      // console.log(`-- added {username:${name}} to db --`);
       findUser(name,res);
     }
   });
@@ -147,17 +147,33 @@ app.get('/api/users', (req,res,next) => {
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
 app.get('/api/users/:_id/logs', async (req,res,next) => {
   let userID = req.params._id
-  let from = new Date(req.query.from);
-  let to = new Date(req.query.to);
+  let from = req.query.from;
+  let to = req.query.to;
   let limit = Number(req.query.limit);
   
+  // console.log(`from = ${from}, to = ${to}`)
   // if no dates entered, defaults to earliest and latest possible dates, encompassing all results
-  if (!from.isValid()) {
+  if (!from) {
     from = new Date('1990-01-01')
+  } else if (from) {
+    let f = new Date(from)
+    if (!f.isValid()) {
+      res.json({'error':'Invalid Date'})
+    } else {
+      from = f
+    }
   }
-  if (!to.isValid()) {
+  if (!to) {
     to = new Date()
+  } else if (to) {
+    let t = new Date(to)
+    if (!t.isValid()) {
+      res.json({'error':'Invalid Date'})
+    } else {
+      to = t
+    }
   }
+  // console.log(from, to)
 
   const d = await User.findById(userID).exec((err,data) => {
     if (data) {
@@ -173,7 +189,6 @@ app.get('/api/users/:_id/logs', async (req,res,next) => {
         logs = logs.slice(0,limit);
       }
       res.json({_id:userID, username:data.username, count:logs.length,log:logs})
-      
     }
   })
 });
