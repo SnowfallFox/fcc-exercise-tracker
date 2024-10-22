@@ -112,6 +112,17 @@ app.post('/api/users', (req,res) => {
   findUser(name,res)
 });
 
+// submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
+app.get('/api/users', (req,res,next) => {
+  const users = User.find({}, {username:1}, (err,data) => {
+    if (err) {
+      console.log(`error: ${err}`)
+    } else {
+      res.json(data)
+    }
+  })
+});
+
 // submitting 'exercises' form should return json of test example 'Exercise'
 app.post('/api/users/:_id/exercises', (req,res) => {
   let date = ''
@@ -130,17 +141,6 @@ app.post('/api/users/:_id/exercises', (req,res) => {
       }
   }
   findID(req.params._id,req.body.description,req.body.duration,date,res)
-});
-
-// submitting GET request to '/api/users' should return a list of json (id:1,username:x) for all users
-app.get('/api/users', (req,res,next) => {
-  const users = User.find({}, {username:1}, (err,data) => {
-    if (err) {
-      console.log(`error: ${err}`)
-    } else {
-      res.json(data)
-    }
-  })
 });
 
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
@@ -192,36 +192,12 @@ app.get('/api/users/:_id/logs', (req,res) => {
         logs = logs.slice(0,limit);
       }
       if (fromString && toString) {
-        console.log(`_id:${userID}`)
-        console.log(`username:${data.username}`)
-        console.log(`from:${fromString}`)
-        console.log(`to:${toString}`)
-        console.log(`count:${logs.length}`)
-        console.log(`logs:${[logs]}`)
-        console.log(`\n`)
         res.json({_id:userID, username:data.username, from:fromString, to:toString, count:logs.length,log:logs})
       } else if (fromString && !toString) {
-        console.log(`_id:${userID}`)
-        console.log(`username:${data.username}`)
-        console.log(`from:${fromString}`)
-        console.log(`count:${logs.length}`)
-        console.log(`logs:${logs}`)
-        console.log(`\n`)
         res.json({_id:userID, username:data.username, from:fromString, count:logs.length,log:logs})
       } else if (!fromString && toString) {
-        console.log(`_id:${userID}`)
-        console.log(`username:${data.username}`)
-        console.log(`to:${toString}`)
-        console.log(`count:${logs.length}`)
-        console.log(`logs:${logs}`)
-        console.log(`\n`)
         res.json({_id:userID, username:data.username, to:toString, count:logs.length,log:logs})
       } else {
-        console.log(`_id:${userID}`)
-        console.log(`username:${data.username}`)
-        console.log(`count:${logs.length}`)
-        console.log(`logs:${logs}`)
-        console.log(`\n`)
         res.json({_id:userID, username:data.username, count:logs.length,log:logs})
       }
     }
