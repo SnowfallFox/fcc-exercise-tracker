@@ -130,21 +130,11 @@ app.get('/api/users', (req,res,next) => {
 
 // submitting 'exercises' form should return json of test example 'Exercise'
 app.post('/api/users/:_id/exercises', (req,res) => {
-  let date = ''
-  if (req.body.description === '' || req.body.duration === '' || req.params._id === '') {
-    res.json({'ERROR':'BLANK REQUIRED FIELDS (id, description, duration'})
-    return;
-  } else if (isNaN(req.body.duration)) { 
-    res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
-    return;
-  } else if (req.body.date !== '') {
-      date = new Date(req.body.date)
-      // console.log(date)
-      if (!date.isValid()) {
-        res.json({'error':'invalid date'})
-        return;
-      }
+  let date = new Date()
+  if (req.body.date) {
+    date = new Date(req.body.date)
   }
+  
   console.log(`entered -> id:${req.params._id}, desc:${req.body.description}, duraton:${req.body.duration}, date:${date}`)
   findID(req.params._id,req.body.description,req.body.duration,date,res)
 });
