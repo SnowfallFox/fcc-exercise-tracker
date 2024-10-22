@@ -145,22 +145,24 @@ app.get('/api/users', (req,res,next) => {
 
 // GET requests to '/api/users/:_id/logs should return json of a users full logs + count, as in test example 'Log'
 // GET requests with additional queries (from, &to, &limit) should only send back the correct number of a user's logs between the specified dates
-app.get('/api/users/:_id/logs', async (req,res,next) => {
+app.get('/api/users/:_id/logs', (req,res) => {
   let userID = req.params._id
   let from = req.query.from;
   let to = req.query.to;
   let limit = Number(req.query.limit);
-  
-  // console.log(`from = ${from}, to = ${to}`)
-  // if no dates entered, defaults to earliest and latest possible dates, encompassing all results
+  let fromString = ''
+  let toString = ''
+
+  // if no dates entered, defaults to 1900 and latest possible dates, likely encompassing all results
   if (!from) {
-    from = new Date('1990-01-01')
+    from = new Date('1900-01-01')
   } else if (from) {
     let f = new Date(from)
     if (!f.isValid()) {
       res.json({'error':'Invalid Date'})
     } else {
       from = f
+      fromString = f.toDateString()
     }
   }
   if (!to) {
@@ -171,13 +173,14 @@ app.get('/api/users/:_id/logs', async (req,res,next) => {
       res.json({'error':'Invalid Date'})
     } else {
       to = t
+      toString = t.toDateString()
     }
   }
-  // console.log(from, to)
 
-  const d = await User.findById(userID).exec((err,data) => {
+  User.findById(userID).exec((err,data) => {
     if (data) {
       // array of relevant entries (matching date queries)
+      console.log(userID, data.username)
       let logs = []
       for (let i = 0; i < data.log.length; i++) {
         let d1 = new Date(data.log[i].date)
@@ -188,7 +191,39 @@ app.get('/api/users/:_id/logs', async (req,res,next) => {
       if (limit > 0) {
         logs = logs.slice(0,limit);
       }
-      res.json({_id:userID, username:data.username, count:logs.length,log:logs})
+      if (fromString && toString) {
+        console.log(`_id:${userID}`)
+        console.log(`username:${data.username}`)
+        console.log(`from:${fromString}`)
+        console.log(`to:${toString}`)
+        console.log(`count:${logs.length}`)
+        console.log(`logs:${[logs]}`)
+        console.log(`\n`)
+        res.json({_id:userID, username:data.username, from:fromString, to:toString, count:logs.length,log:logs})
+      } else if (fromString && !toString) {
+        console.log(`_id:${userID}`)
+        console.log(`username:${data.username}`)
+        console.log(`from:${fromString}`)
+        console.log(`count:${logs.length}`)
+        console.log(`logs:${logs}`)
+        console.log(`\n`)
+        res.json({_id:userID, username:data.username, from:fromString, count:logs.length,log:logs})
+      } else if (!fromString && toString) {
+        console.log(`_id:${userID}`)
+        console.log(`username:${data.username}`)
+        console.log(`to:${toString}`)
+        console.log(`count:${logs.length}`)
+        console.log(`logs:${logs}`)
+        console.log(`\n`)
+        res.json({_id:userID, username:data.username, to:toString, count:logs.length,log:logs})
+      } else {
+        console.log(`_id:${userID}`)
+        console.log(`username:${data.username}`)
+        console.log(`count:${logs.length}`)
+        console.log(`logs:${logs}`)
+        console.log(`\n`)
+        res.json({_id:userID, username:data.username, count:logs.length,log:logs})
+      }
     }
   })
 });
