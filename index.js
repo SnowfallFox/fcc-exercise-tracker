@@ -137,7 +137,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
   } else if (isNaN(req.body.duration)) { 
     res.json({'ERROR':'DURATION MUST BE A VAlID NUMBER/INTEGER'})
     return;
-  } else if (req.body.date !== '') {
+  } else if (!req.body.date) {
       date = new Date(req.body.date)
       // console.log(date)
       if (!date.isValid()) {
