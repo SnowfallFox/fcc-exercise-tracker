@@ -37,8 +37,10 @@ let User = mongoose.model("User", userSchema);
 
 const addExercise = (user, desc, dur, date, res) => {
     if (date === '') {
+      console.log(`saving description and duration to user`)
       user.log.push({description:desc, duration:dur})
     } else {
+      console.log(`saving desc, duration, and date to user`)
       user.log.push({description:desc, duration:dur, date:date.toDateString()})
     }
     user.count +=1
@@ -61,6 +63,7 @@ const findID = async (ID, desc, dur, date, res) => {
   try {
     const user = await User.findById(ID);
     if (user !== null) {
+      console.log(`found user with id: ${ID}`)
       addExercise(user, desc, dur, date, res)
     } else {
       res.json({'ERROR':'no user exists for that ID'})
@@ -75,9 +78,10 @@ const findUser = async (name,res) => {
   try {
     const user = await User.find({username:name});
       if (user.length === 0) {
-        // console.log('no users with that username')
+        console.log('no users with that username')
         createUser(name,res)
       } else {
+        console.log(`user found: ${user[0].username}`)
         res.json({'username':user[0].username,'_id':user[0].id})
       }
   } catch(error) {
@@ -91,7 +95,7 @@ const createUser = async (name,res) => {
     if (err) {
       console.log(err);
     } else {
-      // console.log(`-- added {username:${name}} to db --`);
+      console.log(`-- added {username:${name}} to db --`);
       findUser(name,res);
     }
   });
@@ -109,6 +113,7 @@ app.get('/', (req, res) => {
 // entering a name into "create user" form should return json of test example 'User'
 app.post('/api/users', (req,res) => {
   let name = req.body.username;
+  console.log(name)
   findUser(name,res)
 });
 
@@ -140,6 +145,7 @@ app.post('/api/users/:_id/exercises', (req,res) => {
         return;
       }
   }
+  console.log(`entered -> id:${req.params._id}, desc:${req.body.description}, duraton:${req.body.duration}, date:${date}`)
   findID(req.params._id,req.body.description,req.body.duration,date,res)
 });
 
